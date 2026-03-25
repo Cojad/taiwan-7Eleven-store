@@ -1,0 +1,48 @@
+name: 自動更新 7-11 門市資料 (Auto Update Stores)
+
+on:
+  schedule:
+    # 每週日 UTC 00:00 (台灣時間星期日早上 8 點)
+    - cron: '0 0 * * 0'
+
+  # 允許在 GitHub Actions 頁面手動觸發
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 取得最新程式碼 (Checkout)
+        uses: actions/checkout@v4
+
+      - name: 設定 Python 環境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: 安裝依賴套件
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 執行爬蟲程式
+        run: python 711.py
+
+      - name: 檢查並提交變更
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git add stores.yaml
+
+          if git diff --staged --quiet; then
+            echo "門市資料沒有變動，跳過提交。"
+          else
+            git commit -m "chore: 自動更新 7-11 門市資料 (stores.yaml) [skip ci]"
+            git push
+          fi
