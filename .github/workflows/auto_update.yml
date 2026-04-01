@@ -2,7 +2,7 @@ name: 自動更新 7-11 門市資料 (Auto Update Stores)
 
 on:
   schedule:
-    # 每週日 UTC 00:00 (台灣時間星期日早上 8 點)
+    # 每日 UTC 00:00 (台灣時間星期日早上 8 點)
     - cron: '0 0 * * *'
 
   # 允許在 GitHub Actions 頁面手動觸發
