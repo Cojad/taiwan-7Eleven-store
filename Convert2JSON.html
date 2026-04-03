@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YAML 轉 JSON 工具</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --border: #334155;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --primary: #22c55e;
+      --primary-hover: #16a34a;
+      --secondary: #3b82f6;
+      --secondary-hover: #2563eb;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+      background: linear-gradient(135deg, #0f172a, #111827 45%, #1e293b);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .card {
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.2;
+    }
+
+    .desc {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.12s ease, opacity 0.12s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+
+    .btn-primary { background: var(--primary); color: #052e16; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: var(--secondary); color: white; }
+    .btn-secondary:hover { background: var(--secondary-hover); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: var(--danger-hover); }
+
+    .status {
+      margin-left: auto;
+      align-self: center;
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    .panel {
+      padding: 20px;
+      border-right: 1px solid var(--border);
+    }
+
+    .panel:last-child {
+      border-right: 0;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .label {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 560px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+    }
+
+    .footer {
+      padding: 16px 24px 24px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+      border-top: 1px solid var(--border);
+    }
+
+    code {
+      background: rgba(255,255,255,0.08);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    @media (max-width: 960px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .panel:last-child {
+        border-bottom: 0;
+      }
+
+      .status {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      textarea {
+        min-height: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="header">
+        <h1>YAML 轉 JSON 工具</h1>
+        <p class="desc">
+          把 7-Eleven 門市 YAML 貼到左邊，按下「轉換成 JSON」後，右邊會輸出格式化好的 JSON。<br>
+          支援目前這份資料結構：<code>StoreId: { store: 門市名稱, address: 地址 }</code>
+        </p>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn-primary" id="convertBtn">轉換成 JSON</button>
+        <button class="btn-secondary" id="formatBtn">重新格式化 JSON</button>
+        <button class="btn-secondary" id="copyBtn">複製輸出</button>
+        <button class="btn-danger" id="clearBtn">清空</button>
+        <div class="status" id="status">就緒</div>
+      </div>
+
+      <div class="grid">
+        <div class="panel">
+          <div class="label-row">
+            <div class="label">輸入 YAML</div>
+            <div class="hint">把原始內容貼在這裡</div>
+          </div>
+          <textarea id="yamlInput" spellcheck="false" placeholder="例如：
+114624:
+  store: 佳積
+  address: 台中市大雅區科雅六路1號
+180469:
+  store: 豐積
+  address: 台中市大雅區科雅西路5號B2樓"></textarea>
+        </div>
+
+        <div class="panel">
+          <div class="label-row">
+            <div class="label">輸出 JSON</div>
+            <div class="hint">會自動排版成漂亮格式</div>
+          </div>
+          <textarea id="jsonOutput" spellcheck="false" placeholder='[
+  {
+    "StoreId": "114624",
+    "StoreName": "佳積",
+    "Address": "台中市大雅區科雅六路1號"
+  }
+]'></textarea>
+        </div>
+      </div>
+
+      <div class="footer">
+        原始 YAML 來源：
+        <code>https://raw.githubusercontent.com/Cojad/taiwan-7Eleven-store/refs/heads/master/stores.yaml</code><br>
+        轉換規則：頂層 key 會轉成 <code>StoreId</code>，裡面的 <code>store</code> 轉成 <code>StoreName</code>，<code>address</code> 轉成 <code>Address</code>。
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const yamlInput = document.getElementById('yamlInput');
+    const jsonOutput = document.getElementById('jsonOutput');
+    const statusEl = document.getElementById('status');
+    const convertBtn = document.getElementById('convertBtn');
+    const formatBtn = document.getElementById('formatBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    function setStatus(message, isError = false) {
+      statusEl.textContent = message;
+      statusEl.style.color = isError ? '#fca5a5' : '#94a3b8';
+    }
+
+    function parseSimpleYaml(yamlText) {
+      const lines = yamlText.replace(/\t/g, '    ').split(/\r?\n/);
+      const result = {};
+      let currentId = null;
+
+      for (let i = 0; i < lines.length; i++) {
+        const rawLine = lines[i];
+        const lineNumber = i + 1;
+        const trimmed = rawLine.trim();
+
+        if (!trimmed || trimmed.startsWith('#')) continue;
+
+        const topMatch = rawLine.match(/^([^\s:#][^:]*):\s*$/);
+        if (topMatch) {
+          currentId = String(topMatch[1]).trim();
+          if (!currentId) {
+            throw new Error(`第 ${lineNumber} 行：找不到 StoreId`);
+          }
+          result[currentId] = {};
+          continue;
+        }
+
+        const nestedMatch = rawLine.match(/^\s{1,}([A-Za-z0-9_-]+):\s*(.*)$/);
+        if (nestedMatch) {
+          if (!currentId) {
+            throw new Error(`第 ${lineNumber} 行：巢狀欄位前缺少 StoreId`);
+          }
+
+          const key = nestedMatch[1].trim();
+          let value = nestedMatch[2] ?? '';
+          value = value.trim();
+
+          if (
+            (value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))
+          ) {
+            value = value.slice(1, -1);
+          }
+
+          result[currentId][key] = value;
+          continue;
+        }
+
+        throw new Error(`第 ${lineNumber} 行格式無法辨識：${rawLine}`);
+      }
+
+      return result;
+    }
+
+    function transformToTargetJson(sourceObj) {
+      return Object.entries(sourceObj).map(([storeId, info]) => ({
+        StoreId: String(storeId ?? '').trim(),
+        StoreName: String(info?.store ?? '').trim(),
+        Address: String(info?.address ?? '').trim()
+      }));
+    }
+
+    function convertYamlToJson() {
+      try {
+        const input = yamlInput.value.trim();
+        if (!input) {
+          throw new Error('請先貼上 YAML 內容');
+        }
+
+        const parsed = parseSimpleYaml(input);
+        const output = transformToTargetJson(parsed);
+        jsonOutput.value = JSON.stringify(output, null, 2);
+        setStatus(`轉換完成，共 ${output.length} 筆`);
+      } catch (error) {
+        setStatus(error.message || '轉換失敗', true);
+      }
+    }
+
+    function formatJson() {
+      try {
+        const parsed = JSON.parse(jsonOutput.value);
+        jsonOutput.value = JSON.stringify(parsed, null, 2);
+        setStatus('JSON 已重新格式化');
+      } catch (error) {
+        setStatus('右邊不是有效的 JSON', true);
+      }
+    }
+
+    async function copyOutput() {
+      try {
+        if (!jsonOutput.value.trim()) {
+          throw new Error('沒有可複製的內容');
+        }
+        await navigator.clipboard.writeText(jsonOutput.value);
+        setStatus('已複製到剪貼簿');
+      } catch (error) {
+        jsonOutput.select();
+        document.execCommand('copy');
+        setStatus('已複製到剪貼簿');
+      }
+    }
+
+    function clearAll() {
+      yamlInput.value = '';
+      jsonOutput.value = '';
+      setStatus('已清空');
+    }
+
+    convertBtn.addEventListener('click', convertYamlToJson);
+    formatBtn.addEventListener('click', formatJson);
+    copyBtn.addEventListener('click', copyOutput);
+    clearBtn.addEventListener('click', clearAll);
+
+    yamlInput.addEventListener('keydown', (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        convertYamlToJson();
+      }
+    });
+
+    yamlInput.value = `114624:
+  store: 佳積
+  address: 台中市大雅區科雅六路1號
+180469:
+  store: 豐積
+  address: 台中市大雅區科雅西路5號B2樓`;
+  </script>
+</body>
+</html>
