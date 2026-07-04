@@ -3,7 +3,7 @@
 ## Overview
 這個專案提供台灣 7-Eleven 門市列表爬蟲，可直接利用已抓取的 `stores.yaml` 清單快速使用。
 
-- 最新資料版本：2026/07/03 (7296筆) 
+- 最新資料版本：2026/07/04 (7296筆) 
 - 採用Github Action 每日自動更新
 - 參考文章：[iThome - 使用爬蟲取得 7-11 門市清單](https://ithelp.ithome.com.tw/articles/10193779)
 
@@ -11,7 +11,7 @@
 ```
 .
 ├─ 711.py              # 爬蟲程式
-├─ stores.yaml         # 最新7-11全台門市資料 7296 筆 (2026/07/03)
+├─ stores.yaml         # 最新7-11全台門市資料 7296 筆 (2026/07/04)
 ├─ stores.json         # 同上資料的 JSON 壓縮版（單行，適合機器讀取）
 ├─ stores-pretty.json  # 同上資料的 JSON 美化版（縮排 2 空白，適合人閱讀／diff）
 └─ requirements.txt    # 依賴
